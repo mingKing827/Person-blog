@@ -161,7 +161,6 @@ let articles = [
     readTime: 42
   }
 ]
-
 // 文章CRUD接口
 app.get('/articles', (req, res) => res.json(articles))
 app.get('/category', (req, res) => res.json(req.category))
@@ -178,6 +177,73 @@ app.put('/articles/:id', (req, res) => {
 app.delete('/articles/:id', (req, res) => {
   articles = articles.filter(a => a.id !== parseInt(req.params.id))
   res.sendStatus(204)
+})
+// 评论相关接口
+app.get('/articles/:articleId/comments', (req, res) => {
+  const articleId = parseInt(req.params.articleId)
+  const article = articles.find(a => a.id === articleId)
+  if (article) {
+    res.json(article.comments || [])
+  } else {
+    res.sendStatus(404)
+  }
+})
+app.post('/articles/:articleId/comments', (req, res) => {
+  const articleId = parseInt(req.params.articleId)
+  const article = articles.find(a => a.id === articleId)
+  if (article) {
+    article.comments = article.comments || []
+    const newComment = {
+      id: Date.now(),
+      author: req.body.author || '匿名用户',
+      content: req.body.content,
+      time: new Date().toLocaleString()
+    }
+    article.comments.push(newComment)
+    res.json(newComment)
+  } else {
+    res.sendStatus(404)
+  }
+})
+app.put('/articles/:articleId/comments/:commentId', (req, res) => {
+  const articleId = parseInt(req.params.articleId)
+  const commentId = parseInt(req.params.commentId)
+  const article = articles.find(a => a.id === articleId)
+  if (article) {
+    const comment = article.comments.find(c => c.id === commentId)
+    if (comment) {
+      comment.content = req.body.content
+      comment.time = new Date().toLocaleString() // 更新评论时间
+      res.json(comment)
+    } else {
+      res.sendStatus(404)
+    }
+  } else {
+    res.sendStatus(404)
+  }
+})
+app.delete('/articles/:articleId/comments/:commentId', (req, res) => {
+  const articleId = parseInt(req.params.articleId)
+  const commentId = parseInt(req.params.commentId)
+  const article = articles.find(a => a.id === articleId)
+  if (article) {
+    article.comments = article.comments.filter(c => c.id !== commentId)
+    res.sendStatus(204)
+  } else {
+    res.sendStatus(404)
+  }
+})
+
+// 获取单篇文章
+// 获取单篇文章
+app.get('/articles/:id', (req, res) => {
+  const articleId = parseInt(req.params.id)
+  const article = articles.find(a => a.id === articleId)
+  if (article) {
+    res.json(article)
+  } else {
+    res.sendStatus(404)
+  }
 })
 
 const PORT = 3000
